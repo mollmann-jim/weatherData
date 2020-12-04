@@ -8,7 +8,7 @@ from dateutil.tz import tz
 
 RDU='https://w1.weather.gov/data/obhistory/KRDU.html'
 MYR='https://w1.weather.gov/data/obhistory/KMYR.html'
-DBname = '/home/jim/tools/weather.data/weather.sql'
+DBname = '/home/jim/tools/weatherData/weather.sql'
 
 class DB:
     def __init__(self, site):

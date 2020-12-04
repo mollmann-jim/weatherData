@@ -6,7 +6,7 @@ from sys import path
 path.append('/home/jim/tools/')
 from shared import getTimeInterval
 
-DBname = '/home/jim/tools/weather.data/weather.sql'
+DBname = '/home/jim/tools/weatherData/weather.sql'
 table = 'weather'
 
 '''
