@@ -61,7 +61,12 @@ class DB:
         DBdata['winddirection'] = winds[0]
         if winds[0] == 'Calm':
             DBdata['wind'] = 0
+        elif winds[0] == 'NA':
+            DBdata['wind'] = 0
         else:
+            if len(winds) < 2:
+                print(winds)
+                print(data)
             DBdata['wind'] = winds[1]
         if winds[0] == 'G':
             DBdata['gust'] = winds[3]
