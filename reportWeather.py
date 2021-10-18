@@ -9,48 +9,6 @@ from shared import getTimeInterval
 DBname = '/home/jim/tools/weatherData/weather.sql'
 table = 'weather'
 
-'''
-def getPeriod(which, year = None):
-    now   = dt.datetime.now(tz = tz.gettz('America/New_York'))
-    if which == 'Today':
-        end   = now.replace(hour = 23, minute = 59, second = 0, microsecond = 0)
-        start = now.replace(hour = 0, minute = 0, second =0, microsecond = 0) 
-    elif which == 'Prev7days':
-        end   = now.replace(hour = 23, minute = 59, second = 0, microsecond = 0) - \
-            dt.timedelta(days = 1)
-        start = now.replace(hour = 0, minute = 0, second =0, microsecond = 0) - \
-            dt.timedelta(days = 7)
-    elif which == 'This Week':
-        end   = now.replace(hour = 23, minute = 59, second = 0, microsecond = 0) - \
-            dt.timedelta(days = 1)
-        start = now.replace(hour = 0, minute = 0, second = 0, microsecond = 0) - \
-            dt.timedelta(days = now.weekday())
-    elif which == 'Last Week':
-        end   = now.replace(hour = 23, minute = 59, second = 0, microsecond = 0) - \
-            dt.timedelta(days = 1 + now.weekday())
-        start = now.replace(hour = 0, minute = 0, second = 0, microsecond = 0) - \
-            dt.timedelta(days = 7 + now.weekday())
-    elif which == 'This Month':
-        end   = dt.datetime(now.year, now.month + 1, 1, tzinfo = tz.gettz('America/New_York')) -\
-                            dt.timedelta(seconds = 1) 
-        start = now.replace(day = 1, hour = 0, minute = 0, second = 0, microsecond = 0)
-    elif which == 'Last Month':
-        end   = dt.datetime(now.year, now.month, 1, tzinfo = tz.gettz('America/New_York')) - \
-                            dt.timedelta(seconds = 1)
-        month = now.month - 1
-        if month < 1: month = 12
-        start = dt.datetime(now.year, month, 1, tzinfo = tz.gettz('America/New_York'))
-    elif which == 'Year':
-        year = int(year)
-        end   = dt.datetime(year = year + 1, month = 1, day = 1, tzinfo = tz.gettz('America/New_York')) - \
-            dt.timedelta(seconds = 1)
-        start =  dt.datetime(year = year, month = 1, day = 1, tzinfo = tz.gettz('America/New_York'))
-    else:
-        print('getPeriod: ', which, 'not implemented')
-        start = end = None
-    return start, end
-'''
-
 def fmtLine(tag, row):
     line = tag + ': (none)'
     if row['minT']:
@@ -87,7 +45,7 @@ def getYears(c, site):
 
 def makeSection(c, site, title, byDay = False, byMonth = False, year = None):
     start, end, name = getTimeInterval.getPeriod(title, year = year)
-    selectFields = 'SELECT date(timestamp) as date, ' +\
+    selectFields = 'SELECT substr(timestamp,1,10) as date, ' +\
         'MIN(temperature) AS minT, MAX(temperature) AS maxT, AVG(temperature) AS avgT, ' +\
         'MIN(dewpoint) AS minD, MAX(dewpoint) AS maxD, AVG(dewpoint) AS avgD, ' +\
         'AVG(wind) AS avgW, TOTAL(precipitation1hr) AS rain ' +\
