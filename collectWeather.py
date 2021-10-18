@@ -56,12 +56,12 @@ class DB:
             'precipitation1hr', 'precipitation3hr', 'precipitation6hr']
         for key in data:
             DBdata[key] = data[key]
+            if DBdata[key] == 'NA':
+                DBdata[key] = None
         winds = data['wind'].split(' ')
         DBdata['gust'] = None
         DBdata['winddirection'] = winds[0]
         if winds[0] == 'Calm':
-            DBdata['wind'] = 0
-        elif winds[0] == 'NA':
             DBdata['wind'] = 0
         else:
             if len(winds) < 2:
@@ -71,8 +71,6 @@ class DB:
         if winds[0] == 'G':
             DBdata['gust'] = winds[3]
         DBdata['humidity'] = DBdata['humidity'].replace('%', '')
-        if DBdata['windchill'] == 'NA' : DBdata['windchill'] = None
-        if DBdata['heatindex'] == 'NA' : DBdata['heatindex'] = None
         now = dt.datetime.now()
         hh, mm = DBdata['time'].split(':')
         year = now.year
