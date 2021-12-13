@@ -67,7 +67,9 @@ class DB:
             if len(winds) < 2:
                 print(winds)
                 print(data)
-            DBdata['wind'] = winds[1]
+                DBdata['wind'] = None
+            else:
+                DBdata['wind'] = winds[1]
         if winds[0] == 'G':
             DBdata['gust'] = winds[3]
         DBdata['humidity'] = DBdata['humidity'].replace('%', '')
