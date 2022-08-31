@@ -7,7 +7,23 @@ from dateutil.tz import tz
 
 
 RDU='https://w1.weather.gov/data/obhistory/KRDU.html'
+CRE='https://w1.weather.gov/data/obhistory/KCRE.html'
 MYR='https://w1.weather.gov/data/obhistory/KMYR.html'
+HXD='https://w1.weather.gov/data/obhistory/KHXD.html'
+LUK='https://w1.weather.gov/data/obhistory/KLUK.html'
+CVG='https://w1.weather.gov/data/obhistory/KCVG.html'
+JHW='https://w1.weather.gov/data/obhistory/KJHW.html'
+HOG='https://w1.weather.gov/data/obhistory/PHOG.html'
+locations = ('RDU', 'CRE', 'MYR', 'HXD', 'LUK', 'CVG', 'JHW', 'HOG')
+URLs      = ( RDU,   CRE ,  MYR ,  HXD ,  LUK ,  CVG ,  JHW ,  HOG )
+names     = ('Raleigh-Durham International Airport',
+             'North Myrtle Beach Grand Strand Airport',
+             'Myrtle Beach International Airport',
+             'Hilton Head Island, Hilton Head Airport',
+             'Cincinnati, Cincinnati Municipal Airport Lunken Field',
+             'Cincinnati/Northern Kentucky International Airport',
+             'Jamestown, Chautauqua County/Jamestown Airport',
+             'Kahului, Kahului Airport')
 DBname = '/home/jim/tools/weatherData/weather.sql'
 
 class DB:
@@ -65,6 +81,8 @@ class DB:
             DBdata['wind'] = 0
         else:
             if len(winds) < 2:
+                print('len(winds)', len(winds))
+                print(data['wind'])
                 print(winds)
                 print(data)
                 DBdata['wind'] = None
@@ -72,7 +90,8 @@ class DB:
                 DBdata['wind'] = winds[1]
         if winds[0] == 'G':
             DBdata['gust'] = winds[3]
-        DBdata['humidity'] = DBdata['humidity'].replace('%', '')
+        if DBdata['humidity'] is not None:
+            DBdata['humidity'] = DBdata['humidity'].replace('%', '')
         now = dt.datetime.now()
         hh, mm = DBdata['time'].split(':')
         year = now.year
@@ -127,38 +146,42 @@ class MyHTMLParser(HTMLParser, DB):
                 myInfo = dict(zip(self.Cols, self.line))
                 #print(myInfo)
                 self.Insert(myInfo)
-                pass
             self.myInteresting = False
         elif tag == 'td':
             self.tdOpen = False
             if self.myInteresting:
                 self.line.append(self.item)
-        pass
 
     def handle_data(self, data):
         if self.myInteresting:
             if self.tdOpen:
                 self.item = data
-        pass
 
-RDUparser = MyHTMLParser('RDU')
+class LocationName:
+    def __init__(self, locID, name):
+        self.db = sqlite3.connect(DBname)
+        self.db.row_factory = sqlite3.Row
+        self.c = self.db.cursor()
+        create = 'CREATE TABLE IF NOT EXISTS loc2name (\n' +\
+            ' id        TEXT PRIMARY KEY, \n' +\
+            ' name      TEXT )'
+        self.c.execute(create)
+        self.db.commit()
+        insert = 'INSERT OR REPLACE INTO loc2name ( id, name) VALUES(?, ?);'
+        self.c.execute(insert,(locID, name) )
+        self.db.commit()
+        
+for (loc, url, name) in zip(locations, URLs, names):
+    print(loc)
+    thisParser = MyHTMLParser(loc)
 
-r = requests.get(RDU)
-data = r.text
-lines = data.split('\r')
-lines.pop(0)
-data = ''.join(lines)
-data = data.replace('\n','')
-#print(data)
-RDUparser.feed(data)
-
-MYRparser = MyHTMLParser('MYR')
-
-r = requests.get(MYR)
-data = r.text
-lines = data.split('\r')
-lines.pop(0)
-data = ''.join(lines)
-data = data.replace('\n','')
-#print(data)
-MYRparser.feed(data)
+    r = requests.get(url)
+    data = r.text
+    lines = data.split('\r')
+    lines.pop(0)
+    data = ''.join(lines)
+    data = data.replace('\n','')
+    #print(data)
+    thisParser.feed(data)
+    thisLocName = LocationName(loc, name)
+    
