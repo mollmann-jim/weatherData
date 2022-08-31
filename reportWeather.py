@@ -72,9 +72,25 @@ def makeSection(c, site, title, byDay = False, byMonth = False, year = None):
         else:
             print(fmtLine(name, record))
 
+def printTitle(c, site):
+    lineLen = 59
+    lineLenSpc = lineLen - 2 # spaces around name
+    select = 'SELECT name from loc2name WHERE id = ?;'
+    c.execute(select, (site,))
+    result = c.fetchall()
+    for record in result:
+        siteName = record['name']
+        dashCnt = int((lineLenSpc - len(siteName)) / 2)
+    print('')
+    print('-'*lineLen)
+    print(' '.join(['-'*dashCnt, siteName, '-'*dashCnt]))
+    print('-'*lineLen)
+
+
+            
 def makeReport(c, site):
     first, last = getYears(c, site)
-    print('---------------------------', site, '----------------------------')
+    printTitle(c, site)
     printHeader()
     makeSection(c, site, 'Today')
     makeSection(c, site, 'Prev7days', byDay = True)
@@ -100,9 +116,10 @@ def main():
     db.row_factory = sqlite3.Row
     c = db.cursor()
     #db.set_trace_callback(print)
-
-    makeReport(c, 'RDU')
-    makeReport(c, 'MYR')
+    
+    locations = ('RDU', 'CRE', 'MYR', 'HXD', 'LUK', 'CVG', 'JHW', 'HOG')
+    for loc in locations:
+        makeReport(c, loc)
 
 if __name__ == '__main__':
   main()
