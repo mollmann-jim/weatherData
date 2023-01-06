@@ -172,7 +172,7 @@ class LocationName:
         self.db.commit()
         
 for (loc, url, name) in zip(locations, URLs, names):
-    print(loc)
+    #print(loc)
     thisParser = MyHTMLParser(loc)
 
     r = requests.get(url)

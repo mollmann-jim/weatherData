@@ -10,27 +10,27 @@ DBname = '/home/jim/tools/weatherData/weather.sql'
 table = 'weather'
 
 def fmtLine(tag, row):
-    line = tag + ': (none)'
+    fmts = [' {:>5d}',  ' {:>5d}',  ' {:>5.1f}',  ' {:>5d}',  ' {:>5d}',
+            ' {:>5.1f}',  ' {:>5.1f}',  ' {:>6.2f}']
+    keys = ['minT', 'maxT', 'avgT', 'minD', 'maxD', 'avgD', 'avgW', 'rain']
+    line = '{:>10s}'.format(tag)
     if row['minT']:
-        period =  '{:>10s}'.format(tag)
-        minT   = ' {:>5d}'.format(row['minT'])
-        maxT   = ' {:>5d}'.format(row['maxT'])
-        avgT   = ' {:>5.1f}'.format(row['avgT'])
-        minD   = ' {:>5d}'.format(row['minD'])
-        maxD   = ' {:>5d}'.format(row['maxD'])
-        avgD   = ' {:>5.1f}'.format(row['avgD'])
-        wind   = ' {:>5.1f}'.format(row['avgW'])
-        rain   = ' {:>5.2f}'.format(row['rain']).replace(' 0.00','    0')
-        line = period + minT + maxT + avgT + minD + maxD + avgD + wind + rain
+        for (fmt, key) in zip(fmts, keys):
+            if row[key] is not None:
+                line += fmt.format(row[key]).replace(' 0.00','    0')
+            else:
+                fw = ''.join([i for i in fmt if i.isdigit() or i == '.']).split('.')[0]
+                line += ' {s:>{w}s}'.format(s = 'na', w = fw)
+    else:
+        line += ' (none)'
     return line
-                                
 
 def printHeader():
     # period min/max/avg(temp) min/max/avg(dew) avg(wind) sum(precip)
     #      2020/07/02 mmmmm MMMMM aaaaa mmmmm MMMMM aaaaa wwwww rrrrr
     print('')
-    print('             Min   Max   Avg   Min   Max   Avg   Avg Total')
-    print('            Temp  Temp  Temp DewPt DewPt DewPt  Wind  Rain')
+    print('             Min   Max   Avg   Min   Max   Avg   Avg  Total')
+    print('            Temp  Temp  Temp DewPt DewPt DewPt  Wind   Rain')
 
 def getYears(c, site):
     select_min_yr = 'SELECT min(timestamp) AS min FROM ' + site + ';'
