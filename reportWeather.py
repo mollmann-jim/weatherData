@@ -12,6 +12,8 @@ table = 'weather'
 def fmtLine(tag, row):
     fmts = [' {:>5d}',  ' {:>5d}',  ' {:>5.1f}',  ' {:>5d}',  ' {:>5d}',
             ' {:>5.1f}',  ' {:>5.1f}',  ' {:>6.2f}']
+    fmts = [' {:>5.1f}',  ' {:>5.1f}',  ' {:>5.1f}',  ' {:>5.1f}',  ' {:>5.1f}',
+            ' {:>5.1f}',  ' {:>5.1f}',  ' {:>6.2f}']
     keys = ['minT', 'maxT', 'avgT', 'minD', 'maxD', 'avgD', 'avgW', 'rain']
     line = '{:>10s}'.format(tag)
     if row['minT']:
