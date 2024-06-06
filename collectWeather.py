@@ -5,7 +5,7 @@ import datetime as dt
 import sqlite3
 from dateutil.tz import tz
 
-
+'''
 RDU='https://w1.weather.gov/data/obhistory/KRDU.html'
 CRE='https://w1.weather.gov/data/obhistory/KCRE.html'
 MYR='https://w1.weather.gov/data/obhistory/KMYR.html'
@@ -14,6 +14,16 @@ LUK='https://w1.weather.gov/data/obhistory/KLUK.html'
 CVG='https://w1.weather.gov/data/obhistory/KCVG.html'
 JHW='https://w1.weather.gov/data/obhistory/KJHW.html'
 HOG='https://w1.weather.gov/data/obhistory/PHOG.html'
+'''
+RDU='https://forecast.weather.gov/data/obhistory/KRDU.html'
+CRE='https://forecast.weather.gov/data/obhistory/KCRE.html'
+MYR='https://forecast.weather.gov/data/obhistory/KMYR.html'
+HXD='https://forecast.weather.gov/data/obhistory/KHXD.html'
+LUK='https://forecast.weather.gov/data/obhistory/KLUK.html'
+CVG='https://forecast.weather.gov/data/obhistory/KCVG.html'
+JHW='https://forecast.weather.gov/data/obhistory/KJHW.html'
+HOG='https://forecast.weather.gov/data/obhistory/PHOG.html'
+
 locations = ('RDU', 'CRE', 'MYR', 'HXD', 'LUK', 'CVG', 'JHW', 'HOG')
 URLs      = ( RDU,   CRE ,  MYR ,  HXD ,  LUK ,  CVG ,  JHW ,  HOG )
 names     = ('Raleigh-Durham International Airport',
@@ -24,6 +34,11 @@ names     = ('Raleigh-Durham International Airport',
              'Cincinnati/Northern Kentucky International Airport',
              'Jamestown, Chautauqua County/Jamestown Airport',
              'Kahului, Kahului Airport')
+'''
+locations = ('RDU',)
+URLs      = ( RDU,)
+names     = ('Raleigh-Durham International Airport',)
+'''
 DBname = '/home/jim/tools/weatherData/weather.sql'
 
 class DB:
@@ -74,7 +89,11 @@ class DB:
             DBdata[key] = data[key]
             if DBdata[key] == 'NA':
                 DBdata[key] = None
-        winds = data['wind'].split(' ')
+        #winds = data['wind'].split(' ')
+        Wind = " ".join(data['wind'].split())
+        #print('Wind:', Wind)
+        winds = Wind.split(' ')
+        #print('winda:', winds)
         DBdata['gust'] = None
         DBdata['winddirection'] = winds[0]
         if winds[0] == 'Calm':
@@ -88,8 +107,9 @@ class DB:
                 DBdata['wind'] = None
             else:
                 DBdata['wind'] = winds[1]
-        if winds[0] == 'G':
-            DBdata['gust'] = winds[3]
+        if len(winds) > 2:
+            if winds[2] == 'G':
+                DBdata['gust'] = winds[3]
         if DBdata['humidity'] is not None:
             DBdata['humidity'] = DBdata['humidity'].replace('%', '')
         now = dt.datetime.now()
@@ -131,7 +151,7 @@ class MyHTMLParser(HTMLParser, DB):
             attr = {}
             for name, value in attrs:
                 attr[name] = value
-            if attr.get('valign', 'no') == 'top' and attr.get('align', 'no') == 'center':
+            if attr.get('class', 'no') == 'odd' or attr.get('class', 'no') == 'even':
                 self.i += 1
                 self.myInteresting = True
                 self.line = []
@@ -178,7 +198,7 @@ for (loc, url, name) in zip(locations, URLs, names):
     r = requests.get(url)
     data = r.text
     lines = data.split('\r')
-    lines.pop(0)
+    #lines.pop(0)
     data = ''.join(lines)
     data = data.replace('\n','')
     #print(data)
