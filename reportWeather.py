@@ -9,6 +9,12 @@ from shared import getTimeInterval
 DBname = '/home/jim/tools/weatherData/weather.sql'
 table = 'weather'
 
+def adapt_datetime(dt):
+    return dt.isoformat(sep=' ')
+
+def convert_datetime(val):
+    return dt.datetime.fromisoformat(val).replace('T', ' ')
+
 def fmtLine(tag, row):
     fmts = [' {:>5d}',  ' {:>5d}',  ' {:>5.1f}',  ' {:>5d}',  ' {:>5d}',
             ' {:>5.1f}',  ' {:>5.1f}',  ' {:>6.2f}']
@@ -38,11 +44,13 @@ def getYears(c, site):
     select_min_yr = 'SELECT min(timestamp) AS min FROM ' + site + ';'
     c.execute(select_min_yr)
     min = c.fetchone()
-    first = dt.datetime.strptime(min['min'], '%Y-%m-%d %H:%M:%S%z')
+    #first = dt.datetime.strptime(min['min'].replace('T', ' '), '%Y-%m-%d %H:%M:%S%z')
+    first = dt.datetime.fromisoformat(min['min'])
     select_max_yr = 'SELECT max(timestamp) AS max FROM ' + site + ';'
     c.execute(select_max_yr)
     max = c.fetchone()
-    last = dt.datetime.strptime(max['max'], '%Y-%m-%d %H:%M:%S%z')
+    #last = dt.datetime.strptime(max['max'].replace('T', ' '), '%Y-%m-%d %H:%M:%S%z')
+    last = dt.datetime.fromisoformat(max['max'])
     return first, last
 
 def makeSection(c, site, title, byDay = False, byMonth = False, year = None):
@@ -114,7 +122,9 @@ def makeReport(c, site):
     makeSection(c, site,  'All')
 
 def main():
-    db = sqlite3.connect(DBname)
+    sqlite3.register_adapter(dt.datetime, adapt_datetime)
+    sqlite3.register_converter("DATETIME", convert_datetime)
+    db = sqlite3.connect(DBname, detect_types=sqlite3.PARSE_DECLTYPES)
     db.row_factory = sqlite3.Row
     c = db.cursor()
     #db.set_trace_callback(print)

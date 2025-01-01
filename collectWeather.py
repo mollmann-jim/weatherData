@@ -43,7 +43,9 @@ DBname = '/home/jim/tools/weatherData/weather.sql'
 
 class DB:
     def __init__(self, site):
-        self.db = sqlite3.connect(DBname)
+        sqlite3.register_adapter(dt.datetime, adapt_datetime)
+        sqlite3.register_converter("DATETIME", convert_datetime)
+        self.db = sqlite3.connect(DBname, detect_types=sqlite3.PARSE_DECLTYPES)
         self.db.row_factory = sqlite3.Row
         self.c = self.db.cursor()
         self.table = site
@@ -190,7 +192,13 @@ class LocationName:
         insert = 'INSERT OR REPLACE INTO loc2name ( id, name) VALUES(?, ?);'
         self.c.execute(insert,(locID, name) )
         self.db.commit()
-        
+
+def adapt_datetime(dt):
+    return dt.isoformat(sep=' ')
+
+def convert_datetime(val):
+    return dt.datetime.fromisoformat(val).replace('T', ' ')
+
 for (loc, url, name) in zip(locations, URLs, names):
     #print(loc)
     thisParser = MyHTMLParser(loc)
