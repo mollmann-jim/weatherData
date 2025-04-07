@@ -22,7 +22,7 @@ def fmtLine(tag, row):
             ' {:>5.1f}',  ' {:>5.1f}',  ' {:>6.2f}']
     keys = ['minT', 'maxT', 'avgT', 'minD', 'maxD', 'avgD', 'avgW', 'rain']
     line = '{:>10s}'.format(tag)
-    if row['minT']:
+    if row['minT'] is not None:
         for (fmt, key) in zip(fmts, keys):
             if row[key] is not None:
                 line += fmt.format(row[key]).replace(' 0.00','    0')
