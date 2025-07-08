@@ -2,11 +2,15 @@
 import datetime as dt
 import sqlite3
 from dateutil.tz import tz
+import os
+
+home = os.getenv('HOME')
+
 from sys import path
-path.append('/home/jim/tools/')
+path.append(home + '/tools/')
 from shared import getTimeInterval
 
-DBname = '/home/jim/tools/weatherData/weather.sql'
+DBname = home + '/tools/weatherData/weather.sql'
 table = 'weather'
 
 def adapt_datetime(dt):

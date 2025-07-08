@@ -4,6 +4,9 @@ import requests
 import datetime as dt
 import sqlite3
 from dateutil.tz import tz
+import os
+
+home = os.getenv('HOME')
 
 '''
 RDU='https://w1.weather.gov/data/obhistory/KRDU.html'
@@ -39,7 +42,7 @@ locations = ('RDU',)
 URLs      = ( RDU,)
 names     = ('Raleigh-Durham International Airport',)
 '''
-DBname = '/home/jim/tools/weatherData/weather.sql'
+DBname = home + '/tools/weatherData/weather.sql'
 
 class DB:
     def __init__(self, site):
