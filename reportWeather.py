@@ -125,6 +125,12 @@ def makeReport(c, site):
     print('')
     makeSection(c, site,  'All')
 
+def makeReport30(c, site):
+    printTitle(c, site)
+    printHeader()
+    makeSection(c, site, 'Today')
+    makeSection(c, site, 'Prev30days', byDay = True)
+    
 def main():
     sqlite3.register_adapter(dt.datetime, adapt_datetime)
     sqlite3.register_converter("DATETIME", convert_datetime)
@@ -136,6 +142,8 @@ def main():
     locations = ('RDU', 'CRE', 'MYR', 'HXD', 'LUK', 'CVG', 'JHW', 'HOG')
     for loc in locations:
         makeReport(c, loc)
+    for loc in ('RDU', 'CRE'):
+        makeReport30(c, loc)
 
 if __name__ == '__main__':
   main()
