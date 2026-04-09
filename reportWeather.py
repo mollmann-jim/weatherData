@@ -1,20 +1,19 @@
 #!/usr/bin/env python3
 import datetime as dt
 import sqlite3
-from dateutil.tz import tz
+#from dateutil.tz import tz
 import os
+from sys import path
 
 home = os.getenv('HOME')
-
-from sys import path
 path.append(home + '/tools/')
 from shared import getTimeInterval
 
 DBname = home + '/tools/weatherData/weather.sql'
 table = 'weather'
 
-def adapt_datetime(dt):
-    return dt.isoformat(sep=' ')
+def adapt_datetime(DT):
+    return DT.isoformat(sep=' ')
 
 def convert_datetime(val):
     return dt.datetime.fromisoformat(val).replace('T', ' ')
@@ -25,14 +24,15 @@ def fmtLine(tag, row):
     fmts = [' {:>5.1f}',  ' {:>5.1f}',  ' {:>5.1f}',  ' {:>5.1f}',  ' {:>5.1f}',
             ' {:>5.1f}',  ' {:>5.1f}',  ' {:>6.2f}']
     keys = ['minT', 'maxT', 'avgT', 'minD', 'maxD', 'avgD', 'avgW', 'rain']
-    line = '{:>10s}'.format(tag)
+    line = f'{tag:>10s}'
     if row['minT'] is not None:
         for (fmt, key) in zip(fmts, keys):
             if row[key] is not None:
                 line += fmt.format(row[key]).replace(' 0.00','    0')
             else:
-                fw = ''.join([i for i in fmt if i.isdigit() or i == '.']).split('.')[0]
-                line += ' {s:>{w}s}'.format(s = 'na', w = fw)
+                fw = ''.join([i for i in fmt if i.isdigit() or i == '.']).split('.', maxsplit=1)[0]
+                #line += ' {s:>{w}s}'.format(s = 'na', w = fw)
+                line += f' {'na':>{fw}s}'
     else:
         line += ' (none)'
     return line
@@ -47,14 +47,14 @@ def printHeader():
 def getYears(c, site):
     select_min_yr = 'SELECT min(timestamp) AS min FROM ' + site + ';'
     c.execute(select_min_yr)
-    min = c.fetchone()
+    minYear = c.fetchone()
     #first = dt.datetime.strptime(min['min'].replace('T', ' '), '%Y-%m-%d %H:%M:%S%z')
-    first = dt.datetime.fromisoformat(min['min'])
+    first = dt.datetime.fromisoformat(minYear['min'])
     select_max_yr = 'SELECT max(timestamp) AS max FROM ' + site + ';'
     c.execute(select_max_yr)
-    max = c.fetchone()
+    maxYear = c.fetchone()
     #last = dt.datetime.strptime(max['max'].replace('T', ' '), '%Y-%m-%d %H:%M:%S%z')
-    last = dt.datetime.fromisoformat(max['max'])
+    last = dt.datetime.fromisoformat(maxYear['max'])
     return first, last
 
 def makeSection(c, site, title, byDay = False, byMonth = False, year = None):
@@ -101,7 +101,7 @@ def printTitle(c, site):
     print('-'*lineLen)
 
 
-            
+
 def makeReport(c, site):
     first, last = getYears(c, site)
     printTitle(c, site)
@@ -130,7 +130,7 @@ def makeReport30(c, site):
     printHeader()
     makeSection(c, site, 'Today')
     makeSection(c, site, 'Prev30days', byDay = True)
-    
+
 def main():
     sqlite3.register_adapter(dt.datetime, adapt_datetime)
     sqlite3.register_converter("DATETIME", convert_datetime)
@@ -138,7 +138,7 @@ def main():
     db.row_factory = sqlite3.Row
     c = db.cursor()
     #db.set_trace_callback(print)
-    
+
     locations = ('RDU', 'CRE', 'MYR', 'HXD', 'LUK', 'CVG', 'JHW', 'HOG')
     for loc in locations:
         makeReport(c, loc)
@@ -146,4 +146,4 @@ def main():
         makeReport30(c, loc)
 
 if __name__ == '__main__':
-  main()
+    main()

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 from html.parser import HTMLParser
-import requests
 import datetime as dt
 import sqlite3
-from dateutil.tz import tz
 import os
+from dateutil.tz import tz
+import requests
 
 home = os.getenv('HOME')
 
@@ -52,7 +52,7 @@ class DB:
         self.db.row_factory = sqlite3.Row
         self.c = self.db.cursor()
         self.table = site
-        
+
         ##self.c.execute('DROP TABLE IF EXISTS ' + self.table)
 
         create = 'CREATE TABLE IF NOT EXISTS ' + self.table + '(\n' +\
@@ -79,7 +79,7 @@ class DB:
         self.c.execute(create)
         self.db.commit()
 
-    def Insert(self, data):
+    def Insert(self, Wdata):
         DBdata = {}
         insert = 'INSERT OR REPLACE INTO ' + self.table + ' (timestamp, wind, winddirection, ' +\
             'gust, visibility, sky, clouds, temperature, dewpoint, temp6hrMax, ' +\
@@ -90,12 +90,12 @@ class DB:
             'gust', 'visibility', 'sky', 'clouds', 'temperature', 'dewpoint', 'temp6hrMax',  \
             'temp6hrMin', 'humidity', 'windchill', 'heatindex', 'altimiterIn', 'altimiterMb', \
             'precipitation1hr', 'precipitation3hr', 'precipitation6hr']
-        for key in data:
-            DBdata[key] = data[key]
+        for key in Wdata:
+            DBdata[key] = Wdata[key]
             if DBdata[key] == 'NA':
                 DBdata[key] = None
-        #winds = data['wind'].split(' ')
-        Wind = " ".join(data['wind'].split())
+        #winds = Wdata['wind'].split(' ')
+        Wind = " ".join(Wdata['wind'].split())
         #print('Wind:', Wind)
         winds = Wind.split(' ')
         #print('winda:', winds)
@@ -106,9 +106,9 @@ class DB:
         else:
             if len(winds) < 2:
                 print('len(winds)', len(winds))
-                print(data['wind'])
+                print(Wdata['wind'])
                 print(winds)
-                print(data)
+                print(Wdata)
                 DBdata['wind'] = None
             else:
                 DBdata['wind'] = winds[1]
@@ -132,11 +132,12 @@ class DB:
         DBdata['timestamp'] = timestamp
         values = []
         for col in columns:
-            if DBdata[col] == '' : DBdata[col] = None
+            if DBdata[col] == '' :
+                DBdata[col] = None
             values.append(DBdata[col])
         self.c.execute(insert, values)
         self.db.commit()
-        
+
 
 class MyHTMLParser(HTMLParser, DB):
     def __init__(self, site):
@@ -147,15 +148,16 @@ class MyHTMLParser(HTMLParser, DB):
         self.item = ''
         self.myInteresting = False
         self.tdOpen = False
-        self.Cols = ['day', 'time', 'wind', 'visibility', 'sky', 'clouds', 'temperature', 'dewpoint', \
-                     'temp6hrMax', 'temp6hrMin', 'humidity', 'windchill', 'heatindex', 'altimiterIn', \
+        self.Cols = ['day', 'time', 'wind', 'visibility', 'sky', 'clouds', \
+                     'temperature', 'dewpoint', 'temp6hrMax', 'temp6hrMin', \
+                     'humidity', 'windchill', 'heatindex', 'altimiterIn', \
                      'altimiterMb', 'precipitation1hr', 'precipitation3hr', 'precipitation6hr']
-        
+
     def handle_starttag(self, tag, attrs):
         if tag == 'tr':
             attr = {}
-            for name, value in attrs:
-                attr[name] = value
+            for item, value in attrs:
+                attr[item] = value
             if attr.get('class', 'no') == 'odd' or attr.get('class', 'no') == 'even':
                 self.i += 1
                 self.myInteresting = True
@@ -183,7 +185,7 @@ class MyHTMLParser(HTMLParser, DB):
                 self.item = data
 
 class LocationName:
-    def __init__(self, locID, name):
+    def __init__(self, locID, item):
         self.db = sqlite3.connect(DBname)
         self.db.row_factory = sqlite3.Row
         self.c = self.db.cursor()
@@ -193,11 +195,11 @@ class LocationName:
         self.c.execute(create)
         self.db.commit()
         insert = 'INSERT OR REPLACE INTO loc2name ( id, name) VALUES(?, ?);'
-        self.c.execute(insert,(locID, name) )
+        self.c.execute(insert,(locID, item) )
         self.db.commit()
 
-def adapt_datetime(dt):
-    return dt.isoformat(sep=' ')
+def adapt_datetime(DT):
+    return DT.isoformat(sep=' ')
 
 def convert_datetime(val):
     return dt.datetime.fromisoformat(val).replace('T', ' ')
@@ -206,13 +208,12 @@ for (loc, url, name) in zip(locations, URLs, names):
     #print(loc)
     thisParser = MyHTMLParser(loc)
 
-    r = requests.get(url)
-    data = r.text
-    lines = data.split('\r')
+    r = requests.get(url, timeout = 17.0)
+    reqData  = r.text
+    lines    = reqData.split('\r')
     #lines.pop(0)
-    data = ''.join(lines)
-    data = data.replace('\n','')
+    reqData = ''.join(lines)
+    reqData = reqData.replace('\n','')
     #print(data)
-    thisParser.feed(data)
+    thisParser.feed(reqData)
     thisLocName = LocationName(loc, name)
-    
