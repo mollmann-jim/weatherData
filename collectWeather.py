@@ -52,6 +52,7 @@ class DB:
         self.db.row_factory = sqlite3.Row
         self.c = self.db.cursor()
         self.table = site
+        self.lastTemp = 9999999
 
         ##self.c.execute('DROP TABLE IF EXISTS ' + self.table)
 
@@ -117,6 +118,15 @@ class DB:
                 DBdata['gust'] = winds[3]
         if DBdata['humidity'] is not None:
             DBdata['humidity'] = DBdata['humidity'].replace('%', '')
+        # only believe temperature / dewpoint of 0 if it already cold; else None
+        if DBdata['temperature'] == 0:
+            if self.lastTemp > 20:
+                DBdata['temperature'] = None
+        if DBdata['dewpoint'] == 0:
+            if self.lastTemp > 20:
+                DBdata['dewpoint'] = None
+        if DBdata['temperature'] is not None:
+            self.lastTemp = DBdata['temperature']
         now = dt.datetime.now()
         hh, mm = DBdata['time'].split(':')
         year = now.year
